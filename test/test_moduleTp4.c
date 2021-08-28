@@ -55,7 +55,7 @@ static Examples_t Invalid_cases_pass[] = {
     {.send = ">Pass:\"Rey414@d\"", .param = "Rey414@d", .len = 8},
     {.send = ">Pass:\"10frWe2r\"", .param = "Rey414@d", .len = 8},
     {.send = ">Pass:\"sinCharEsp01\"", .param = "Rey414@d", .len = 8},
-    {.send = ">Passs:\"Ras414@@12\"", .param = "Ras414@@12", .len = 10},
+    {.send = ">Passs:\"Ras414@@12\"", .param = "Rey414@d", .len = 8},
 };
 /*=================================================================================================================*/
 /*                                             Public Variables                                                    */

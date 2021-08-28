@@ -9,23 +9,73 @@
 /*=================================================================================================================*/
 /*                                        Private Methods Declarations                                             */
 /*=================================================================================================================*/
+/**
+ * @brief Private function that determines if the access parameter is valid.
+ * if It is a valid parameter then, It stores in the private structure.
+ * 
+ * @param c character to be processed by the FSM.
+ */
 static void moduleTp4_fsmSave(uint8_t c);
 
+/**
+ * @brief Private function to initialize the variables used to temporarily store the access parameter.
+ * 
+ * @param c character to be processed by the FSM.
+ */
 static void moduleTp4_fsmInitData(uint8_t c);
 
+/**
+ * @brief Private function to store temporally an access parameter, It saved character by character.
+ * 
+ * @param c character to be processed by the FSM.
+ */
 static void moduleTp4_fsmData(uint8_t c);
 
+/**
+ * @brief Private function to initialize the variables used to detect if the data frame contains a valid label,
+ * that allows the system to identify if it is a public IP, VPN user, VPN pass. 
+ * 
+ * @param c character to be processed by the FSM.
+ */
 static void moduleTp4_fsmInitCompare(uint8_t c);
 
+/**
+ * @brief Private function to determine if the data frame received contains a valid label that indicate the 
+ * system must to storing the access parameter included in it.
+ * 
+ * @param c character to be processed by the FSM.
+ */
 static void moduleTp4_fsmCompare(uint8_t c);
 
+/**
+ * @brief Private function that does nothing, its purpose is to be invoked in situations where no processing is 
+ * required. For example, if no event is received and if the system is sleeping.
+ * 
+ * @param c character to be processed by the FSM.
+ */
 static void moduleTp4_fsmDoNothing(uint8_t c);
 
-static void moduleTp4_fsmReset(uint8_t c);
+/**
+ * @brief Private function invoked when the received packet is invalid, this resets all the variables used up 
+ * to this moment.
+ * 
+ * @param c character to be processed by the FSM.
+ */
+static void moduleTp4_variablesReset(uint8_t c);
 
+/**
+ * @brief Private function to input a character in the FSM.
+ * 
+ * @param c character to be processed by the FSM.
+ */
 static void moduleTp4_input_parameters_mef(uint8_t c);
 
-static void moduleTp4_MefReset();
+/**
+ * @brief Private function to initialize all the variables used to save the last valid package. i.e, it restarts 
+ * the variables used by the FSM to receive a new access parameter.
+ * 
+ */
+static void moduleTp4_fsmReset();
 /*=================================================================================================================*/
 /*                                             Private Variables                                                   */
 /*=================================================================================================================*/
@@ -101,19 +151,19 @@ static const id_param_t tableIdParam[] = {
 static const mef_entry_t table_mef[] = {{none_event, sleeping, sleeping, moduleTp4_fsmDoNothing},
                                         {none_event, waiting_command, waiting_command, moduleTp4_fsmCompare},
                                         {none_event, receiving_data, receiving_data, moduleTp4_fsmData},
-                                        {none_event, error, sleeping, moduleTp4_fsmReset},
+                                        {none_event, error, sleeping, moduleTp4_variablesReset},
                                         {command, sleeping, waiting_command, moduleTp4_fsmInitCompare},
                                         {command, waiting_command, waiting_command, moduleTp4_fsmInitCompare},
                                         {command, receiving_data, waiting_command, moduleTp4_fsmInitCompare},
-                                        {command, error, sleeping, moduleTp4_fsmReset},
-                                        {start_param, sleeping, error, moduleTp4_fsmReset},
+                                        {command, error, sleeping, moduleTp4_variablesReset},
+                                        {start_param, sleeping, error, moduleTp4_variablesReset},
                                         {start_param, waiting_command, receiving_data, moduleTp4_fsmInitData},
-                                        {start_param, receiving_data, error, moduleTp4_fsmReset},
-                                        {start_param, error, sleeping, moduleTp4_fsmReset},
-                                        {end_param, sleeping, error, moduleTp4_fsmReset},
-                                        {end_param, waiting_command, error, moduleTp4_fsmReset},
+                                        {start_param, receiving_data, error, moduleTp4_variablesReset},
+                                        {start_param, error, sleeping, moduleTp4_variablesReset},
+                                        {end_param, sleeping, error, moduleTp4_variablesReset},
+                                        {end_param, waiting_command, error, moduleTp4_variablesReset},
                                         {end_param, receiving_data, sleeping, moduleTp4_fsmSave},
-                                        {end_param, error, sleeping, moduleTp4_fsmReset}};
+                                        {end_param, error, sleeping, moduleTp4_variablesReset}};
 /*=================================================================================================================*/
 /*                                                Private Methods                                                  */
 /*=================================================================================================================*/
@@ -246,7 +296,7 @@ static bool moduleTp4_PassToVerify(uint8_t* ptr) {
   return ret;
 }
 
-static void moduleTp4_MefReset() {
+static void moduleTp4_fsmReset() {
   userData->userInput = no_receiving;
   //========================================= Section of MEF recv. variables ==========================================/
   mef.mef_count = 0;
@@ -285,7 +335,7 @@ static void moduleTp4_fsmSave(uint8_t c) {
   }
   for (uint8_t i = 0; i < sizeof(mef.ptrAux); i++) mef.ptrAux[i] = '\0';
   userData->userInput = no_receiving;
-  moduleTp4_MefReset();
+  moduleTp4_fsmReset();
 }
 
 static void moduleTp4_fsmInitData(uint8_t c) {
@@ -340,7 +390,7 @@ static void moduleTp4_fsmCompare(uint8_t c) {
 
 static void moduleTp4_fsmDoNothing(uint8_t c) { ; }
 
-static void moduleTp4_fsmReset(uint8_t c) {
+static void moduleTp4_variablesReset(uint8_t c) {
   mef.mef_count = 0;
   mef.mef_event = none_event;
   mef.valided_param = false;
