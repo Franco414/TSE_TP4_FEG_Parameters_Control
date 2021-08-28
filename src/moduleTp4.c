@@ -12,68 +12,68 @@
 /**
  * @brief Private function that determines if the access parameter is valid.
  * if It is a valid parameter then, It stores in the private structure.
- * 
+ *
  * @param c character to be processed by the FSM.
  */
 static void moduleTp4_fsmSave(uint8_t c);
 
 /**
  * @brief Private function to initialize the variables used to temporarily store the access parameter.
- * 
+ *
  * @param c character to be processed by the FSM.
  */
 static void moduleTp4_fsmInitData(uint8_t c);
 
 /**
  * @brief Private function to store temporally an access parameter, It saved character by character.
- * 
+ *
  * @param c character to be processed by the FSM.
  */
 static void moduleTp4_fsmData(uint8_t c);
 
 /**
  * @brief Private function to initialize the variables used to detect if the data frame contains a valid label,
- * that allows the system to identify if it is a public IP, VPN user, VPN pass. 
- * 
+ * that allows the system to identify if it is a public IP, VPN user, VPN pass.
+ *
  * @param c character to be processed by the FSM.
  */
 static void moduleTp4_fsmInitCompare(uint8_t c);
 
 /**
- * @brief Private function to determine if the data frame received contains a valid label that indicate the 
+ * @brief Private function to determine if the data frame received contains a valid label that indicate the
  * system must to storing the access parameter included in it.
- * 
+ *
  * @param c character to be processed by the FSM.
  */
 static void moduleTp4_fsmCompare(uint8_t c);
 
 /**
- * @brief Private function that does nothing, its purpose is to be invoked in situations where no processing is 
+ * @brief Private function that does nothing, its purpose is to be invoked in situations where no processing is
  * required. For example, if no event is received and if the system is sleeping.
- * 
+ *
  * @param c character to be processed by the FSM.
  */
 static void moduleTp4_fsmDoNothing(uint8_t c);
 
 /**
- * @brief Private function invoked when the received packet is invalid, this resets all the variables used up 
+ * @brief Private function invoked when the received packet is invalid, this resets all the variables used up
  * to this moment.
- * 
+ *
  * @param c character to be processed by the FSM.
  */
 static void moduleTp4_variablesReset(uint8_t c);
 
 /**
  * @brief Private function to input a character in the FSM.
- * 
+ *
  * @param c character to be processed by the FSM.
  */
 static void moduleTp4_input_parameters_mef(uint8_t c);
 
 /**
- * @brief Private function to initialize all the variables used to save the last valid package. i.e, it restarts 
+ * @brief Private function to initialize all the variables used to save the last valid package. i.e, it restarts
  * the variables used by the FSM to receive a new access parameter.
- * 
+ *
  */
 static void moduleTp4_fsmReset();
 /*=================================================================================================================*/
@@ -200,14 +200,12 @@ static bool moduleTp4_IpToVerify(uint8_t* ptr) {
   static uint8_t lenIPrecv;
   static uint8_t maxDigByField;
   static uint8_t countDig;
-  static uint8_t numField;
   static uint8_t countField;
   static bool ret;
   static uint8_t count;
   lenIPrecv = strlen(ptr);
-  maxDigByField = 3;
+  maxDigByField = IP_MAX_DIGIT_BY_FIELD;
   countDig = 0;
-  numField = 4;
   countField = 1;
   ret = false;
 
@@ -229,7 +227,7 @@ static bool moduleTp4_IpToVerify(uint8_t* ptr) {
       }
     }
   }
-  if (countField == 4 && countDig > 0 && countDig < 4) ret = true;
+  if (countField == IP_NUM_FIELD && countDig > 0 && countDig < IP_NUM_FIELD) ret = true;
   return ret;
 }
 
@@ -241,7 +239,7 @@ static bool moduleTp4_UserToVerify(uint8_t* ptr) {
   ret = false;
   invaliduint8_t = false;
   lenIPrecv = strlen(ptr);
-  if (lenIPrecv > userData->cfg.numMaxuint8_t || lenIPrecv < 6) return ret;
+  if (lenIPrecv > userData->cfg.numMaxuint8_t || lenIPrecv < VPN_USER_MIN_NUM_CHAR) return ret;
   for (count = 0; count < lenIPrecv; count++) {
     if (IsInvaliduint8_t(ptr[count])) {
       invaliduint8_t = true;
@@ -265,7 +263,7 @@ static bool moduleTp4_PassToVerify(uint8_t* ptr) {
   lenIPrecv = strlen(ptr);
   ret = false;
 
-  if (lenIPrecv > userData->cfg.numMaxuint8_t || lenIPrecv < 8) return ret;
+  if (lenIPrecv > userData->cfg.numMaxuint8_t || lenIPrecv < VPN_PASS_MIN_NUM_CHAR) return ret;
   for (uint8_t count = 0; count < lenIPrecv; count++) {
     if (charIsLetterMinus(ptr[count]))
       minusuint8_t = true;
@@ -303,29 +301,29 @@ static void moduleTp4_fsmReset() {
   mef.mef_event = none_event;
   mef.mef_state = sleeping;
   mef.valided_param = false;
-  memset(mef.tempTypeParam, '\0', sizeof(mef.tempTypeParam));
-  memset(mef.ptrAux, '\0', sizeof(mef.ptrAux));
+  memset(mef.tempTypeParam, CHARACTER_NULL, sizeof(mef.tempTypeParam));
+  memset(mef.ptrAux, CHARACTER_NULL, sizeof(mef.ptrAux));
 }
 
 static void moduleTp4_fsmSave(uint8_t c) {
   switch (userData->userInput) {
     case recv_ip:
       if (moduleTp4_IpToVerify(mef.ptrAux)) {
-        memset(userData->paramAccess.ipPublic, '\0', sizeof(userData->paramAccess.ipPublic));
+        memset(userData->paramAccess.ipPublic, CHARACTER_NULL, sizeof(userData->paramAccess.ipPublic));
         sprintf(userData->paramAccess.ipPublic, "%s", mef.ptrAux);
       }
       break;
 
     case recv_user:
       if (moduleTp4_UserToVerify(mef.ptrAux)) {
-        memset(userData->paramAccess.userClientVPN, '\0', sizeof(userData->paramAccess.userClientVPN));
+        memset(userData->paramAccess.userClientVPN, CHARACTER_NULL, sizeof(userData->paramAccess.userClientVPN));
         sprintf(userData->paramAccess.userClientVPN, "%s", mef.ptrAux);
       }
       break;
 
     case recv_pass:
       if (moduleTp4_PassToVerify(mef.ptrAux)) {
-        memset(userData->paramAccess.passClientVPN, '\0', sizeof(userData->paramAccess.passClientVPN));
+        memset(userData->paramAccess.passClientVPN, CHARACTER_NULL, sizeof(userData->paramAccess.passClientVPN));
         sprintf(userData->paramAccess.passClientVPN, "%s", mef.ptrAux);
       }
       break;
@@ -333,7 +331,7 @@ static void moduleTp4_fsmSave(uint8_t c) {
     default:
       break;
   }
-  for (uint8_t i = 0; i < sizeof(mef.ptrAux); i++) mef.ptrAux[i] = '\0';
+  for (uint8_t i = 0; i < sizeof(mef.ptrAux); i++) mef.ptrAux[i] = CHARACTER_NULL;
   userData->userInput = no_receiving;
   moduleTp4_fsmReset();
 }
@@ -449,14 +447,14 @@ void moduleTp4_appInit() {
   mef.start_param = MEF_START_PARAM;
   mef.end_param = MEF_END_PARAM;
   mef.mef_event = none_event;
-  mef.ptrAux = (uint8_t*)malloc(sizeof(uint8_t) * 20);
+  mef.ptrAux = (uint8_t*)malloc(sizeof(uint8_t) * FSM_SIZE_PTR_AUX);
   mef.mef_state = sleeping;
-  mef.tempTypeParam = (uint8_t*)malloc(sizeof(uint8_t) * 10);
-  memset(mef.ptrAux, '\0', sizeof(mef.ptrAux));
-  memset(mef.tempTypeParam, '\0', strlen(mef.tempTypeParam));
-  memset(userData->paramAccess.ipPublic, '\0', sizeof(userData->paramAccess.ipPublic));
-  memset(userData->paramAccess.userClientVPN, '\0', sizeof(userData->paramAccess.userClientVPN));
-  memset(userData->paramAccess.passClientVPN, '\0', sizeof(userData->paramAccess.passClientVPN));
+  mef.tempTypeParam = (uint8_t*)malloc(sizeof(uint8_t) * FSM_SIZE_PTR_TEMP_DATA_TYPE);
+  memset(mef.ptrAux, CHARACTER_NULL, sizeof(mef.ptrAux));
+  memset(mef.tempTypeParam, CHARACTER_NULL, strlen(mef.tempTypeParam));
+  memset(userData->paramAccess.ipPublic, CHARACTER_NULL, sizeof(userData->paramAccess.ipPublic));
+  memset(userData->paramAccess.userClientVPN, CHARACTER_NULL, sizeof(userData->paramAccess.userClientVPN));
+  memset(userData->paramAccess.passClientVPN, CHARACTER_NULL, sizeof(userData->paramAccess.passClientVPN));
 }
 
 void moduleTp4_appFinish() {
