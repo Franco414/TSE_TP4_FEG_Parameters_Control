@@ -102,7 +102,6 @@ typedef struct {
   recv_param_event_t mef_event;
   state_parameters_mef_t mef_state;
   uint16_t mef_count;
-  bool valided_param;
   uint8_t* ptrAux;
   uint8_t* tempTypeParam;
   uint8_t start_command;
@@ -117,7 +116,7 @@ typedef struct {
 } param_access_t;
 
 typedef struct {
-  uint8_t numMaxuint8_t;
+  uint8_t numMaxChar;
   uint8_t numMaxDigIP;
   uint8_t connectionAttempts;
 } cfg_t;
@@ -180,7 +179,7 @@ static bool IsSpecialChar(uint8_t c) {
   return ret;
 }
 
-static bool IsInvaliduint8_t(uint8_t c) {
+static bool IsInvalidChar(uint8_t c) {
   static bool ret;
   static bool aux;
   aux = false;
@@ -239,9 +238,9 @@ static bool moduleTp4_UserToVerify(uint8_t* ptr) {
   ret = false;
   invaliduint8_t = false;
   lenIPrecv = strlen(ptr);
-  if (lenIPrecv > userData->cfg.numMaxuint8_t || lenIPrecv < VPN_USER_MIN_NUM_CHAR) return ret;
+  if (lenIPrecv > userData->cfg.numMaxChar || lenIPrecv < VPN_USER_MIN_NUM_CHAR) return ret;
   for (count = 0; count < lenIPrecv; count++) {
-    if (IsInvaliduint8_t(ptr[count])) {
+    if (IsInvalidChar(ptr[count])) {
       invaliduint8_t = true;
       count = lenIPrecv;
     }
@@ -263,7 +262,7 @@ static bool moduleTp4_PassToVerify(uint8_t* ptr) {
   lenIPrecv = strlen(ptr);
   ret = false;
 
-  if (lenIPrecv > userData->cfg.numMaxuint8_t || lenIPrecv < VPN_PASS_MIN_NUM_CHAR) return ret;
+  if (lenIPrecv > userData->cfg.numMaxChar || lenIPrecv < VPN_PASS_MIN_NUM_CHAR) return ret;
   for (uint8_t count = 0; count < lenIPrecv; count++) {
     if (charIsLetterMinus(ptr[count]))
       minusuint8_t = true;
@@ -277,7 +276,7 @@ static bool moduleTp4_PassToVerify(uint8_t* ptr) {
           if (IsSpecialChar(ptr[count]))
             specialuint8_t = true;
           else
-            lenIPrecv = userData->cfg.numMaxuint8_t;
+            lenIPrecv = userData->cfg.numMaxChar;
         }
       }
     }
@@ -300,7 +299,6 @@ static void moduleTp4_fsmReset() {
   mef.mef_count = 0;
   mef.mef_event = none_event;
   mef.mef_state = sleeping;
-  mef.valided_param = false;
   memset(mef.tempTypeParam, CHARACTER_NULL, sizeof(mef.tempTypeParam));
   memset(mef.ptrAux, CHARACTER_NULL, sizeof(mef.ptrAux));
 }
@@ -345,18 +343,18 @@ static void moduleTp4_fsmData(uint8_t c) {
   static uint16_t limitChar;
   static uint16_t c_;
   c_ = c;
-  ;
   if (userData->userInput == recv_ip) {
     limitChar = userData->cfg.numMaxDigIP;
   } else {
-    limitChar = userData->cfg.numMaxuint8_t;
+    limitChar = userData->cfg.numMaxChar;
   }
 
   if (mef.mef_count < limitChar) {
     strcat((char*)mef.ptrAux, (char*)&c_);
     mef.mef_count++;
-  } else
-    userData->userInput = no_receiving;
+  } else {
+    mef.mef_state=error;
+  }
 }
 
 static void moduleTp4_fsmInitCompare(uint8_t c) { mef.mef_count = 0; }
@@ -376,13 +374,14 @@ static void moduleTp4_fsmCompare(uint8_t c) {
       else {
         if (!strcmp(mef.tempTypeParam, tableIdParam[2].ptr) && countTemp < tableIdParam[2].len)
           userData->userInput = recv_pass;
-        else
-          userData->userInput = no_receiving;
+        else{
+          mef.mef_state=error;
+        }
       }
     }
     countTemp++;
     countTemp = 0;
-    memset(mef.tempTypeParam, 0, sizeof(mef.tempTypeParam));
+    memset(mef.tempTypeParam, CHARACTER_NULL, sizeof(mef.tempTypeParam));
   }
 }
 
@@ -391,7 +390,10 @@ static void moduleTp4_fsmDoNothing(uint8_t c) { ; }
 static void moduleTp4_variablesReset(uint8_t c) {
   mef.mef_count = 0;
   mef.mef_event = none_event;
-  mef.valided_param = false;
+  mef.mef_state=sleeping;
+  userData->userInput = no_receiving;
+  memset(mef.tempTypeParam, CHARACTER_NULL, sizeof(mef.tempTypeParam));
+  memset(mef.ptrAux, CHARACTER_NULL, sizeof(mef.ptrAux));
 }
 
 static void moduleTp4_input_parameters_mef(uint8_t c) {
@@ -435,11 +437,11 @@ static tpData_t moduleTp4_instance_object() {
 void moduleTp4_appInit() {
   userData = (tpData_s*)moduleTp4_instance_object();
   userData->cfg.connectionAttempts = NUM_CONNECTION_ATTEMPTS;
-  userData->cfg.numMaxuint8_t = MAX_NUM_CHARACTER;
+  userData->cfg.numMaxChar = MAX_NUM_CHARACTER;
   userData->cfg.numMaxDigIP = NUM_DIG_IP;
   userData->paramAccess.ipPublic = (uint8_t*)malloc(sizeof(uint8_t) * userData->cfg.numMaxDigIP);
-  userData->paramAccess.userClientVPN = (uint8_t*)malloc(sizeof(uint8_t) * userData->cfg.numMaxuint8_t);
-  userData->paramAccess.passClientVPN = (uint8_t*)malloc(sizeof(uint8_t) * userData->cfg.numMaxuint8_t);
+  userData->paramAccess.userClientVPN = (uint8_t*)malloc(sizeof(uint8_t) * userData->cfg.numMaxChar);
+  userData->paramAccess.passClientVPN = (uint8_t*)malloc(sizeof(uint8_t) * userData->cfg.numMaxChar);
   userData->modo = idle;
   //========================================= Section of MEF recv. variables ==========================================/
   mef.mef_count = 0;
