@@ -37,6 +37,8 @@ static const Examples_t valid_cases_pass[] = {
 };
 
 static Examples_t Invalid_cases_ip[] = {
+    // First a valid parameter is loaded, and then it sends erroneous commands to verify that the first parameter has
+    // not been modified.
     {.send = ">IP:\"10.10.10.10\"", .param = "10.10.10.10", .len = 11},
     {.send = ">IP:\"abc.def.ghi.jkl\"", .param = "10.10.10.10", .len = 11},
     {.send = ">IP:\"123..111.10\"", .param = "10.10.10.10", .len = 11},
@@ -45,6 +47,8 @@ static Examples_t Invalid_cases_ip[] = {
 };
 
 static Examples_t Invalid_cases_user[] = {
+    // First a valid parameter is loaded, and then it sends erroneous commands to verify that the first parameter has
+    // not been modified.
     {.send = ">User:\"userExample\"", .param = "userExample", .len = 11},
     {.send = ">User:\"thanGreaterMAX\"", .param = "userExample", .len = 11},
     {.send = ">User:\"few\"", .param = "userExample", .len = 11},
@@ -53,6 +57,8 @@ static Examples_t Invalid_cases_user[] = {
 };
 
 static Examples_t Invalid_cases_pass[] = {
+    // First a valid parameter is loaded, and then it sends erroneous commands to verify that the first parameter has
+    // not been modified.
     {.send = ">Pass:\"Rey414@d\"", .param = "Rey414@d", .len = 8},
     {.send = ">Pass:\"10frWe2r\"", .param = "Rey414@d", .len = 8},
     {.send = ">Pass:\"sinCharEsp01\"", .param = "Rey414@d", .len = 8},
@@ -79,7 +85,8 @@ void test_moduleTp4_validIP(void) {
   for (uint16_t count = 0; count < (sizeof(valid_cases_ip) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(valid_cases_ip[count].send); index++)
       moduleTp4_typingParam(valid_cases_ip[count].send[index]);
-    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_ip[count].param,moduleTp4_getIPpublic(testUserData));
+    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count + 1, valid_cases_ip[count].param,
+            moduleTp4_getIPpublic(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(valid_cases_ip[count].param, moduleTp4_getIPpublic(testUserData),
                                          valid_cases_ip[count].len, msg);
   }
@@ -90,7 +97,8 @@ void test_validUser(void) {
   for (uint16_t count = 0; count < (sizeof(valid_cases_user) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(valid_cases_user[count].send); index++)
       moduleTp4_typingParam(valid_cases_user[count].send[index]);
-    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_user[count].param,moduleTp4_getUser(testUserData));
+    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count + 1, valid_cases_user[count].param,
+            moduleTp4_getUser(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(valid_cases_user[count].param, moduleTp4_getUser(testUserData),
                                          valid_cases_user[count].len, msg);
   }
@@ -101,7 +109,8 @@ void test_validPass(void) {
   for (uint16_t count = 0; count < (sizeof(valid_cases_pass) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(valid_cases_pass[count].send); index++)
       moduleTp4_typingParam(valid_cases_pass[count].send[index]);
-    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_pass[count].param,moduleTp4_getPass(testUserData));
+    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count + 1, valid_cases_pass[count].param,
+            moduleTp4_getPass(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(valid_cases_pass[count].param, moduleTp4_getPass(testUserData),
                                          valid_cases_pass[count].len, msg);
   }
@@ -112,7 +121,8 @@ void test_InvalidIP(void) {
   for (uint16_t count = 0; count < (sizeof(Invalid_cases_ip) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(Invalid_cases_ip[count].send); index++)
       moduleTp4_typingParam(Invalid_cases_ip[count].send[index]);
-    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_ip[count].param,moduleTp4_getIPpublic(testUserData));
+    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count + 1, valid_cases_ip[count].param,
+            moduleTp4_getIPpublic(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(Invalid_cases_ip[count].param, moduleTp4_getIPpublic(testUserData),
                                          Invalid_cases_ip[count].len, msg);
   }
@@ -123,7 +133,8 @@ void test_InvalidUser(void) {
   for (uint16_t count = 0; count < (sizeof(Invalid_cases_user) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(Invalid_cases_user[count].send); index++)
       moduleTp4_typingParam(Invalid_cases_user[count].send[index]);
-    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_user[count].param,moduleTp4_getUser(testUserData));
+    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count + 1, valid_cases_user[count].param,
+            moduleTp4_getUser(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(Invalid_cases_user[count].param, moduleTp4_getUser(testUserData),
                                          Invalid_cases_user[count].len, msg);
   }
@@ -133,7 +144,8 @@ void test_InvalidPass(void) {
   for (uint16_t count = 0; count < (sizeof(Invalid_cases_pass) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(Invalid_cases_pass[count].send); index++)
       moduleTp4_typingParam(Invalid_cases_pass[count].send[index]);
-   sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_pass[count].param,moduleTp4_getPass(testUserData));
+    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count + 1, valid_cases_pass[count].param,
+            moduleTp4_getPass(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(Invalid_cases_pass[count].param, moduleTp4_getPass(testUserData),
                                          Invalid_cases_pass[count].len, msg);
   }

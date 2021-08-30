@@ -398,11 +398,13 @@ static void moduleTp4_variablesReset(uint8_t c) {
 }
 
 static void moduleTp4_detectSizeError() {
-  static int countM=0;
-  if(mef.mef_state == sleeping) countM=0;
+  static int countM = 0;
+  if (mef.mef_state == sleeping) countM = 0;
   if (mef.mef_state == waiting_command) {
-    if (countM<FSM_SIZE_PTR_TEMP_DATA_TYPE) countM++;
-    else mef.mef_state = error;
+    if (countM < FSM_SIZE_PTR_TEMP_DATA_TYPE)
+      countM++;
+    else
+      mef.mef_state = error;
   }
 }
 
