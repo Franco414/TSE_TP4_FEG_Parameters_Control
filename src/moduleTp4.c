@@ -101,7 +101,7 @@ typedef struct {
 typedef struct {
   recv_param_event_t mef_event;
   state_parameters_mef_t mef_state;
-  uint16_t mef_count;
+  uint8_t mef_count;
   uint8_t* ptrAux;
   uint8_t* tempTypeParam;
   uint8_t start_command;
@@ -137,8 +137,9 @@ typedef struct {
   uint8_t len;
 } id_param_t;
 
-static const id_param_t tableIdParam[] = {
-    {.ptr = "IP", .len = 3}, {.ptr = "User", .len = 5}, {.ptr = "Pass", .len = 5}};
+static const id_param_t tableIdParam[] = {{.ptr = LABEL_IP_IDENTIFIER, .len = SIZE_LABEL_IP},
+                                          {.ptr = LABEL_USER_IDENTIFIER, .len = SIZE_LABEL_USER},
+                                          {.ptr = LABEL_PASS_IDENTIFIER, .len = SIZE_LABEL_PASS}};
 
 /*=================================================================================================================*/
 /*                                                Public Variables                                                 */
@@ -234,18 +235,18 @@ static bool moduleTp4_UserToVerify(uint8_t* ptr) {
   static uint8_t lenIPrecv;
   static uint8_t count;
   static bool ret;
-  static bool invaliduint8_t;
+  static bool invalidChar;
   ret = false;
-  invaliduint8_t = false;
+  invalidChar = false;
   lenIPrecv = strlen(ptr);
   if (lenIPrecv > userData->cfg.numMaxChar || lenIPrecv < VPN_USER_MIN_NUM_CHAR) return ret;
   for (count = 0; count < lenIPrecv; count++) {
     if (IsInvalidChar(ptr[count])) {
-      invaliduint8_t = true;
+      invalidChar = true;
       count = lenIPrecv;
     }
   }
-  if (!invaliduint8_t) ret = true;
+  if (!invalidChar) ret = true;
   lenIPrecv = 0;
   count = 0;
   return ret;
@@ -254,42 +255,42 @@ static bool moduleTp4_UserToVerify(uint8_t* ptr) {
 static bool moduleTp4_PassToVerify(uint8_t* ptr) {
   static uint8_t lenIPrecv;
   static bool ret = false;
-  static bool invaliduint8_t = false;
-  static bool minusuint8_t = false;
-  static bool upperuint8_t = false;
-  static bool numberuint8_t = false;
-  static bool specialuint8_t = false;
+  static bool invalidChar = false;
+  static bool minusChar = false;
+  static bool upperChar = false;
+  static bool numberChar = false;
+  static bool specialChar = false;
   lenIPrecv = strlen(ptr);
   ret = false;
 
   if (lenIPrecv > userData->cfg.numMaxChar || lenIPrecv < VPN_PASS_MIN_NUM_CHAR) return ret;
   for (uint8_t count = 0; count < lenIPrecv; count++) {
     if (charIsLetterMinus(ptr[count]))
-      minusuint8_t = true;
+      minusChar = true;
     else {
       if (charIsLetterUpper(ptr[count]))
-        upperuint8_t = true;
+        upperChar = true;
       else {
         if (charIsDigit(ptr[count]))
-          numberuint8_t = true;
+          numberChar = true;
         else {
           if (IsSpecialChar(ptr[count]))
-            specialuint8_t = true;
+            specialChar = true;
           else
             lenIPrecv = userData->cfg.numMaxChar;
         }
       }
     }
   }
-  ret = specialuint8_t && numberuint8_t;
-  ret = ret && minusuint8_t;
-  ret = ret && upperuint8_t;
+  ret = specialChar && numberChar;
+  ret = ret && minusChar;
+  ret = ret && upperChar;
 
-  invaliduint8_t = false;
-  minusuint8_t = false;
-  upperuint8_t = false;
-  numberuint8_t = false;
-  specialuint8_t = false;
+  invalidChar = false;
+  minusChar = false;
+  upperChar = false;
+  numberChar = false;
+  specialChar = false;
   return ret;
 }
 
@@ -336,7 +337,7 @@ static void moduleTp4_fsmSave(uint8_t c) {
 
 static void moduleTp4_fsmInitData(uint8_t c) {
   mef.mef_count = 0;
-  memset(mef.ptrAux, 0, sizeof(mef.ptrAux));
+  memset(mef.ptrAux, CHARACTER_NULL, sizeof(mef.ptrAux));
 }
 
 static void moduleTp4_fsmData(uint8_t c) {
@@ -353,35 +354,35 @@ static void moduleTp4_fsmData(uint8_t c) {
     strcat((char*)mef.ptrAux, (char*)&c_);
     mef.mef_count++;
   } else {
-    mef.mef_state=error;
+    mef.mef_state = error;
   }
 }
 
-static void moduleTp4_fsmInitCompare(uint8_t c) { mef.mef_count = 0; }
+static void moduleTp4_fsmInitCompare(uint8_t c) {
+  mef.mef_count = 0;
+  mef.ptrAux[0] = CHARACTER_NULL;
+}
 
 static void moduleTp4_fsmCompare(uint8_t c) {
-  static uint8_t countTemp;
   static uint8_t c_;
+  uint8_t* dest = mef.tempTypeParam;
   c_ = c;
   if (c_ != ':') {
-    strcat((char*)mef.tempTypeParam, (char*)&c_);
+    while (*dest) dest++;
+    *dest = c_;
   } else {
-    if (!strcmp(mef.tempTypeParam, tableIdParam[0].ptr) && countTemp < tableIdParam[0].len)
+    if (!strcmp(mef.tempTypeParam, tableIdParam[0].ptr) && mef.mef_count < tableIdParam[0].len)
       userData->userInput = recv_ip;
     else {
-      if (!strcmp(mef.tempTypeParam, tableIdParam[1].ptr) && countTemp < tableIdParam[1].len)
+      if (!strcmp(mef.tempTypeParam, tableIdParam[1].ptr) && mef.mef_count < tableIdParam[1].len)
         userData->userInput = recv_user;
       else {
-        if (!strcmp(mef.tempTypeParam, tableIdParam[2].ptr) && countTemp < tableIdParam[2].len)
+        if (!strcmp(mef.tempTypeParam, tableIdParam[2].ptr) && mef.mef_count < tableIdParam[2].len)
           userData->userInput = recv_pass;
-        else{
-          mef.mef_state=error;
-        }
       }
     }
-    countTemp++;
-    countTemp = 0;
     memset(mef.tempTypeParam, CHARACTER_NULL, sizeof(mef.tempTypeParam));
+    mef.mef_count = 0;
   }
 }
 
@@ -390,10 +391,19 @@ static void moduleTp4_fsmDoNothing(uint8_t c) { ; }
 static void moduleTp4_variablesReset(uint8_t c) {
   mef.mef_count = 0;
   mef.mef_event = none_event;
-  mef.mef_state=sleeping;
+  mef.mef_state = sleeping;
   userData->userInput = no_receiving;
   memset(mef.tempTypeParam, CHARACTER_NULL, sizeof(mef.tempTypeParam));
   memset(mef.ptrAux, CHARACTER_NULL, sizeof(mef.ptrAux));
+}
+
+static void moduleTp4_detectSizeError() {
+  static int countM=0;
+  if(mef.mef_state == sleeping) countM=0;
+  if (mef.mef_state == waiting_command) {
+    if (countM<FSM_SIZE_PTR_TEMP_DATA_TYPE) countM++;
+    else mef.mef_state = error;
+  }
 }
 
 static void moduleTp4_input_parameters_mef(uint8_t c) {
@@ -415,6 +425,7 @@ static void moduleTp4_input_parameters_mef(uint8_t c) {
       break;
     }
   }
+  moduleTp4_detectSizeError();
 }
 
 static tpData_t moduleTp4_instance_object() {

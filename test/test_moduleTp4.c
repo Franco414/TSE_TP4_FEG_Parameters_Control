@@ -48,6 +48,7 @@ static Examples_t Invalid_cases_user[] = {
     {.send = ">User:\"userExample\"", .param = "userExample", .len = 11},
     {.send = ">User:\"thanGreaterMAX\"", .param = "userExample", .len = 11},
     {.send = ">User:\"few\"", .param = "userExample", .len = 11},
+    {.send = ">User:\"abcde\"", .param = "userExample", .len = 11},
     {.send = ">User:\"\"", .param = "userExample", .len = 11},
 };
 
@@ -74,71 +75,65 @@ void tearDown(void) { moduleTp4_appFinish(); }
 /*=================================================================================================================*/
 
 void test_moduleTp4_validIP(void) {
-  char msg[25];
+  char msg[200];
   for (uint16_t count = 0; count < (sizeof(valid_cases_ip) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(valid_cases_ip[count].send); index++)
       moduleTp4_typingParam(valid_cases_ip[count].send[index]);
-    sprintf(msg, "Example IP: %d", count + 1);
-    printf("recibio:%s\n", moduleTp4_getIPpublic(testUserData));
+    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_ip[count].param,moduleTp4_getIPpublic(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(valid_cases_ip[count].param, moduleTp4_getIPpublic(testUserData),
                                          valid_cases_ip[count].len, msg);
   }
 }
 
 void test_validUser(void) {
-  char msg[25];
+  char msg[200];
   for (uint16_t count = 0; count < (sizeof(valid_cases_user) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(valid_cases_user[count].send); index++)
       moduleTp4_typingParam(valid_cases_user[count].send[index]);
-    sprintf(msg, "Example User: %d", count + 1);
-    printf("recibio:%s\n", moduleTp4_getUser(testUserData));
+    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_user[count].param,moduleTp4_getUser(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(valid_cases_user[count].param, moduleTp4_getUser(testUserData),
                                          valid_cases_user[count].len, msg);
   }
 }
 
 void test_validPass(void) {
-  char msg[25];
+  char msg[200];
   for (uint16_t count = 0; count < (sizeof(valid_cases_pass) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(valid_cases_pass[count].send); index++)
       moduleTp4_typingParam(valid_cases_pass[count].send[index]);
-    sprintf(msg, "Example Pass: %d", count + 1);
-    printf("recibio:%s\n", moduleTp4_getPass(testUserData));
+    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_pass[count].param,moduleTp4_getPass(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(valid_cases_pass[count].param, moduleTp4_getPass(testUserData),
                                          valid_cases_pass[count].len, msg);
   }
 }
 
 void test_InvalidIP(void) {
-  char msg[25];
+  char msg[200];
   for (uint16_t count = 0; count < (sizeof(Invalid_cases_ip) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(Invalid_cases_ip[count].send); index++)
       moduleTp4_typingParam(Invalid_cases_ip[count].send[index]);
-    sprintf(msg, "Example IP: %d", count + 1);
-    printf("W_IP:%s\n", moduleTp4_getIPpublic(testUserData));
+    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_ip[count].param,moduleTp4_getIPpublic(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(Invalid_cases_ip[count].param, moduleTp4_getIPpublic(testUserData),
                                          Invalid_cases_ip[count].len, msg);
   }
 }
 
 void test_InvalidUser(void) {
-  char msg[25];
+  char msg[200];
   for (uint16_t count = 0; count < (sizeof(Invalid_cases_user) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(Invalid_cases_user[count].send); index++)
       moduleTp4_typingParam(Invalid_cases_user[count].send[index]);
-    sprintf(msg, "Example User: %d", count + 1);
-    printf("W_Pass:%s\n", moduleTp4_getUser(testUserData));
+    sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_user[count].param,moduleTp4_getUser(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(Invalid_cases_user[count].param, moduleTp4_getUser(testUserData),
                                          Invalid_cases_user[count].len, msg);
   }
 }
 void test_InvalidPass(void) {
-  char msg[25];
+  char msg[200];
   for (uint16_t count = 0; count < (sizeof(Invalid_cases_pass) / sizeof(Examples_t)); count++) {
     for (uint8_t index = 0; index < strlen(Invalid_cases_pass[count].send); index++)
       moduleTp4_typingParam(Invalid_cases_pass[count].send[index]);
-    sprintf(msg, "Example User: %d", count + 1);
-    printf("W_Pass:%s\n", moduleTp4_getPass(testUserData));
+   sprintf(msg, "Example Valid Pass: %d, Expected: %s, Received: %s", count+1,valid_cases_pass[count].param,moduleTp4_getPass(testUserData));
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(Invalid_cases_pass[count].param, moduleTp4_getPass(testUserData),
                                          Invalid_cases_pass[count].len, msg);
   }

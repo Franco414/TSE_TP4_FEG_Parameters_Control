@@ -14,7 +14,14 @@
 #define MAX_NUM_CHARACTER 12
 #define NUM_DIG_IP 16
 #define CHARACTER_NULL '\0'
+/*========================================= User's Labels config ==================================================*/
+#define LABEL_IP_IDENTIFIER "IP"
+#define LABEL_USER_IDENTIFIER "User"
+#define LABEL_PASS_IDENTIFIER "Pass"
 
+#define SIZE_LABEL_IP strlen(LABEL_IP_IDENTIFIER)
+#define SIZE_LABEL_USER strlen(LABEL_USER_IDENTIFIER)
+#define SIZE_LABEL_PASS strlen(LABEL_PASS_IDENTIFIER)
 /*============================================ fsm parameters =====================================================*/
 #define MEF_START_PARAM '\"'
 #define MEF_END_PARAM '\"'
